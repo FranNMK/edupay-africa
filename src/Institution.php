@@ -1,5 +1,5 @@
 <?php
-// src/Institution.php
+
 
 class Institution {
     private $pdo;
