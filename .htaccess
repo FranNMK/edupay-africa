@@ -1,0 +1,15 @@
+RewriteEngine On
+RewriteBase /edupay-africa/
+
+# Prevent rewrite loops for already-rewritten public paths
+RewriteRule ^public/ - [L]
+
+# If the request is NOT for a real file or directory
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Send everything to the public folder
+RewriteRule ^(.*)$ public/$1 [L]
+
+# If someone just visits the root, send them to public/
+RewriteRule ^$ public/ [L]
