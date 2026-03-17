@@ -22,4 +22,26 @@ class User {
             return false;
         }
     }
+
+    public function login($email, $password) {
+        $sql = "SELECT * FROM users WHERE email = ?";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$email]);
+        $user = $stmt->fetch();
+
+        // Verify the user exists and the password matches the hash
+        if ($user && password_verify($password, $user['password_hash'])) {
+            // Start a session and store user data
+            session_start();
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_name'] = $user['full_name'];
+            $_SESSION['role'] = $user['role'];
+            $_SESSION['institution_id'] = $user['institution_id'];
+            
+            return true;
+        }
+        return false;
+    }
 }
+?>
+
