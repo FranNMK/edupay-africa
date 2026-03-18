@@ -9,8 +9,8 @@
 // Simple logic for dynamic CTA based on session (if applicable)
 session_start();
 $is_logged_in = isset($_SESSION['user_id']);
-$primary_cta_link = $is_logged_in ? 'dashboard.php' : 'register.php';
-$primary_cta_text = $is_logged_in ? 'Go to Dashboard' : 'Register Your School';
+$primary_cta_link = $is_logged_in ? 'dashboard.php' : 'demo_request.php';
+$primary_cta_text = $is_logged_in ? 'Go to Dashboard' : 'Book a Demo Request';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -28,6 +28,8 @@ $primary_cta_text = $is_logged_in ? 'Go to Dashboard' : 'Register Your School';
     <meta property="og:title" content="EduPay Africa | Smart School Payments">
     <meta property="og:description" content="Digitizing school fee collections with seamless M-Pesa integration and real-time reporting.">
     <meta property="og:image" content="assets/og-image.jpg">
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <link rel="apple-touch-icon" href="images/logo.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -178,6 +180,17 @@ $primary_cta_text = $is_logged_in ? 'Go to Dashboard' : 'Register Your School';
             font-size: 1.4rem;
             font-weight: 800;
             box-shadow: 0 4px 12px rgba(0, 61, 130, 0.2);
+        }
+        .logo-img {
+            width: 44px;
+            height: 44px;
+            object-fit: contain;
+            border-radius: 10px;
+            display: block;
+        }
+        .logo-img-footer {
+            background: #ffffff;
+            padding: 4px;
         }
         .logo span { 
             font-size: 1.2rem; 
@@ -884,7 +897,7 @@ $primary_cta_text = $is_logged_in ? 'Go to Dashboard' : 'Register Your School';
     <header role="banner">
         <div class="container nav-wrapper">
             <a href="index.php" class="logo" aria-label="EduPay Africa Home">
-                <div class="logo-box"></div>
+                <img src="images/logo.png" alt="EduPay Africa logo" class="logo-img">
                 <span>EDUPAY AFRICA</span>
             </a>
 
@@ -897,7 +910,7 @@ $primary_cta_text = $is_logged_in ? 'Go to Dashboard' : 'Register Your School';
 
             <div class="nav-auth">
                 <a href="login.php" class="btn btn-outline" style="padding: 11px 24px; font-size: 0.9rem; border-width: 1.5px;">Login</a>
-                <a href="register.php" class="btn btn-primary" style="padding: 11px 28px; font-size: 0.9rem;">Get Started</a>
+                <a href="demo_request.php" class="btn btn-primary" style="padding: 11px 28px; font-size: 0.9rem;">Book a Demo Request</a>
             </div>
 
             <button class="hamburger" id="menuToggle" aria-label="Toggle Navigation" aria-expanded="false">
@@ -914,7 +927,7 @@ $primary_cta_text = $is_logged_in ? 'Go to Dashboard' : 'Register Your School';
         <a href="#contact" class="mob-link">Contact</a>
         <hr style="opacity: 0.1; margin: 10px 0;">
         <a href="login.php" class="btn btn-outline" style="margin-top: 15px;">Login</a>
-        <a href="register.php" class="btn btn-primary">Get Started</a>
+        <a href="demo_request.php" class="btn btn-primary">Book a Demo Request</a>
     </nav>
 
     <main id="main">
@@ -1076,7 +1089,7 @@ $primary_cta_text = $is_logged_in ? 'Go to Dashboard' : 'Register Your School';
             <div class="container">
                 <h2>Launch a Kenya-Ready Fee Collection System</h2>
                 <p>Book a demo, onboard your institution, and roll out parent-friendly digital payments in days.</p>
-                <a href="register.php" class="btn btn-accent btn-lg" style="padding: 18px 48px;">
+                <a href="demo_request.php" class="btn btn-accent btn-lg" style="padding: 18px 48px;">
                     <i class="fas fa-play"></i>
                     Request School Demo
                 </a>
@@ -1089,7 +1102,7 @@ $primary_cta_text = $is_logged_in ? 'Go to Dashboard' : 'Register Your School';
             <div class="footer-grid">
                 <div class="footer-col">
                     <div class="logo" style="margin-bottom: 20px;">
-                        <div class="logo-box" style="background: white;"></div>
+                        <img src="images/logo.png" alt="EduPay Africa logo" class="logo-img logo-img-footer">
                         <span style="color: white;">EDUPAY AFRICA</span>
                     </div>
                     <p>A focused school payments platform built for Kenya and designed to scale across East Africa.</p>
@@ -1101,7 +1114,7 @@ $primary_cta_text = $is_logged_in ? 'Go to Dashboard' : 'Register Your School';
                         <li><a href="#payment-options">Payment Options</a></li>
                         <li><a href="#how-works">How It Works</a></li>
                         <li><a href="login.php">Administrator Login</a></li>
-                        <li><a href="register.php">Request Demo</a></li>
+                        <li><a href="demo_request.php">Request Demo</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
