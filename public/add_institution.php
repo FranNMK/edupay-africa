@@ -1,20 +1,36 @@
 <?php
-require_once '../config/db.php';
-require_once '../src/Institution.php';
 session_start();
+require_once '../config/db.php';
 
-// Security Check: Only allow logged-in Admins
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: login.php");
-    exit();
-}
+use EduPay\Auth;
+use EduPay\Institution;
+
+Auth::requireLogin();
+Auth::requireRole('admin', 403, 'Access denied. Admins only.');
 
 $instObj = new Institution($pdo);
-$message = "";
+$message = '';
+$messageType = '';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $success = $instObj->create($_POST['name'], $_POST['short_name'], $_POST['address'], $_POST['email']);
-    $message = $success ? "Institution added successfully!" : "Error: Short name must be unique.";
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!csrf_verify()) {
+        $message = 'Invalid request token. Please refresh and try again.';
+        $messageType = 'error';
+    } else {
+        $name       = trim($_POST['name'] ?? '');
+        $short_name = trim($_POST['short_name'] ?? '');
+        $address    = trim($_POST['address'] ?? '');
+        $email      = trim($_POST['email'] ?? '');
+
+        if ($name === '' || $short_name === '') {
+            $message = 'School name and short name are required.';
+            $messageType = 'error';
+        } else {
+            $success = $instObj->create($name, $short_name, $address, $email);
+            $message = $success ? 'Institution added successfully!' : 'Error: Short name must be unique.';
+            $messageType = $success ? 'success' : 'error';
+        }
+    }
 }
 
 $all_schools = $instObj->getAll();
@@ -110,12 +126,15 @@ $all_schools = $instObj->getAll();
                 </div>
 
                 <?php if ($message): ?>
-                    <div class="alert"><?php echo htmlspecialchars($message); ?></div>
+                    <div class="alert" style="<?php echo $messageType === 'error' ? 'background:rgba(192,57,43,0.10);color:#c0392b;border-color:rgba(192,57,43,0.2);' : ''; ?>">
+                        <?php echo h($message); ?>
+                    </div>
                 <?php endif; ?>
 
                 <section class="panel">
                     <h3>Add New School</h3>
                     <form method="POST">
+                        <?php echo csrf_field(); ?>
                         <div class="grid">
                             <div class="field">
                                 <label for="name">School Full Name</label>
@@ -148,10 +167,10 @@ $all_schools = $instObj->getAll();
                         </tr>
                         <?php foreach ($all_schools as $school): ?>
                         <tr>
-                            <td><?php echo $school['id']; ?></td>
-                            <td><?php echo htmlspecialchars($school['name']); ?></td>
-                            <td><?php echo htmlspecialchars($school['short_name']); ?></td>
-                            <td><?php echo htmlspecialchars($school['contact_email']); ?></td>
+                            <td><?php echo h($school['id']); ?></td>
+                            <td><?php echo h($school['name']); ?></td>
+                            <td><?php echo h($school['short_name']); ?></td>
+                            <td><?php echo h($school['contact_email']); ?></td>
                         </tr>
                         <?php endforeach; ?>
                     </table>

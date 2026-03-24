@@ -2,10 +2,9 @@
 session_start();
 require_once '../config/db.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit();
-}
+use EduPay\Auth;
+
+Auth::requireLogin();
 
 $student_id = $_GET['student_id'] ?? null;
 
@@ -39,7 +38,7 @@ $student = $name_stmt->fetch();
     <title>Fee Statement - EduPay Africa</title>
 </head>
 <body>
-    <h1>Fee Statement for <?php echo htmlspecialchars($student['full_name']); ?></h1>
+    <h1>Fee Statement for <?php echo h($student['full_name']); ?></h1>
     <a href="dashboard.php">Back to Dashboard</a>
     <hr>
 
@@ -61,7 +60,7 @@ $student = $name_stmt->fetch();
                 $total_balance += $balance;
             ?>
             <tr>
-                <td><?php echo htmlspecialchars($fee['fee_name']); ?></td>
+                <td><?php echo h($fee['fee_name']); ?></td>
                 <td><?php echo number_format($fee['total_amount'], 2); ?></td>
                 <td><?php echo number_format($fee['paid_amount'], 2); ?></td>
                 <td style="color: red;"><?php echo number_format($balance, 2); ?></td>

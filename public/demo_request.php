@@ -1,6 +1,8 @@
 <?php
+session_start();
 require_once '../config/db.php';
-require_once '../src/DemoRequest.php';
+
+use EduPay\DemoRequest;
 
 $demoRequest = new DemoRequest($pdo);
 $message = '';
@@ -18,6 +20,10 @@ $formData = [
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!csrf_verify()) {
+        $message = 'Invalid request token. Please refresh and try again.';
+        $messageType = 'error';
+    } else {
     $formData['institution_name'] = trim($_POST['institution_name'] ?? '');
     $formData['contact_name'] = trim($_POST['contact_name'] ?? '');
     $formData['email'] = trim($_POST['email'] ?? '');
@@ -89,6 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = implode(' ', $errors);
         $messageType = 'error';
     }
+    } // end csrf_verify else
 }
 ?>
 <!DOCTYPE html>
@@ -301,29 +308,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="card-body">
             <?php if ($message !== ''): ?>
-                <div class="alert <?= htmlspecialchars($messageType) ?>"><?= htmlspecialchars($message) ?></div>
+                <div class="alert <?= h($messageType) ?>"><?= h($message) ?></div>
             <?php endif; ?>
 
             <form method="POST" novalidate>
+                <?php echo csrf_field(); ?>
                 <div class="form-grid">
                     <div class="field">
                         <label for="institution_name">Institution Name *</label>
-                        <input id="institution_name" name="institution_name" type="text" required value="<?= htmlspecialchars($formData['institution_name']) ?>" placeholder="e.g. Greenfields Academy">
+                        <input id="institution_name" name="institution_name" type="text" required value="<?= h($formData['institution_name']) ?>" placeholder="e.g. Greenfields Academy">
                     </div>
 
                     <div class="field">
                         <label for="contact_name">Contact Person *</label>
-                        <input id="contact_name" name="contact_name" type="text" required value="<?= htmlspecialchars($formData['contact_name']) ?>" placeholder="e.g. Jane Wambui">
+                        <input id="contact_name" name="contact_name" type="text" required value="<?= h($formData['contact_name']) ?>" placeholder="e.g. Jane Wambui">
                     </div>
 
                     <div class="field">
                         <label for="email">Email Address *</label>
-                        <input id="email" name="email" type="email" required value="<?= htmlspecialchars($formData['email']) ?>" placeholder="name@school.ac.ke">
+                        <input id="email" name="email" type="email" required value="<?= h($formData['email']) ?>" placeholder="name@school.ac.ke">
                     </div>
 
                     <div class="field">
                         <label for="phone">Phone Number *</label>
-                        <input id="phone" name="phone" type="text" required value="<?= htmlspecialchars($formData['phone']) ?>" placeholder="+254 7XX XXX XXX">
+                        <input id="phone" name="phone" type="text" required value="<?= h($formData['phone']) ?>" placeholder="+254 7XX XXX XXX">
                     </div>
 
                     <div class="field">
@@ -339,7 +347,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <div class="field">
                         <label for="student_count">Approx. Student Count</label>
-                        <input id="student_count" name="student_count" type="number" min="0" value="<?= htmlspecialchars((string) $formData['student_count']) ?>" placeholder="e.g. 1200">
+                        <input id="student_count" name="student_count" type="number" min="0" value="<?= h((string) $formData['student_count']) ?>" placeholder="e.g. 1200">
                     </div>
 
                     <div class="field full">
@@ -353,7 +361,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <div class="field full">
                         <label for="message">Notes</label>
-                        <textarea id="message" name="message" placeholder="Tell us anything important about your institution needs..."><?= htmlspecialchars($formData['message']) ?></textarea>
+                        <textarea id="message" name="message" placeholder="Tell us anything important about your institution needs..."><?= h($formData['message']) ?></textarea>
                     </div>
                 </div>
 

@@ -1,5 +1,6 @@
 <?php
 
+namespace EduPay;
 
 class User
 {
@@ -20,7 +21,7 @@ class User
 
         try {
             return $stmt->execute([$name, $email, $hashedPassword, $role]);
-        } catch (PDOException $e) {
+        } catch (\PDOException $e) {
             // Handle duplicate emails
             return false;
         }
@@ -35,8 +36,10 @@ class User
 
         // Verify the user exists and the password matches the hash
         if ($user && password_verify($password, $user['password_hash'])) {
-            // Start a session and store user data
-            session_start();
+            // Start a session only if one is not already active.
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_name'] = $user['full_name'];
             $_SESSION['role'] = $user['role'];

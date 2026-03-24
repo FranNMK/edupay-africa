@@ -1,5 +1,7 @@
 <?php
 
+namespace EduPay;
+
 class DemoRequest
 {
     private $pdo;
@@ -91,7 +93,9 @@ class DemoRequest
                     );
                 }
 
-                $token = !empty($request['onboarding_token']) ? (string) $request['onboarding_token'] : bin2hex(random_bytes(24));
+                $token = !empty($request['onboarding_token'])
+                    ? (string) $request['onboarding_token']
+                    : bin2hex(random_bytes(24));
                 $expiresAt = date('Y-m-d H:i:s', strtotime('+7 days'));
             }
 
@@ -136,7 +140,8 @@ class DemoRequest
 
     public function findByOnboardingToken(string $token): ?array
     {
-        $sql = "SELECT id, institution_name, contact_name, email, onboarding_token, onboarding_expires_at, approval_status
+        $sql = "SELECT id, institution_name, contact_name, email,
+                       onboarding_token, onboarding_expires_at, approval_status
                 FROM demo_requests
                 WHERE onboarding_token = ?
                 LIMIT 1";

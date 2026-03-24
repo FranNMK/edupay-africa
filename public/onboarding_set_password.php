@@ -1,6 +1,8 @@
 <?php
+session_start();
 require_once '../config/db.php';
-require_once '../src/DemoRequest.php';
+
+use EduPay\DemoRequest;
 
 $demoRequestObj = new DemoRequest($pdo);
 $token = trim($_GET['token'] ?? '');
@@ -26,15 +28,19 @@ if ($token === '') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $error === '' && $request) {
-    $password = $_POST['password'] ?? '';
-    $confirmPassword = $_POST['confirm_password'] ?? '';
-
-    if (strlen($password) < 8) {
-        $error = 'Password must be at least 8 characters.';
-    } elseif ($password !== $confirmPassword) {
-        $error = 'Passwords do not match.';
+    if (!csrf_verify()) {
+        $error = 'Invalid request token. Please refresh and try again.';
     } else {
-        $success = 'Password setup workflow scaffold is ready. Account activation and login wiring will be completed in the next phase.';
+        $password = $_POST['password'] ?? '';
+        $confirmPassword = $_POST['confirm_password'] ?? '';
+
+        if (strlen($password) < 8) {
+            $error = 'Password must be at least 8 characters.';
+        } elseif ($password !== $confirmPassword) {
+            $error = 'Passwords do not match.';
+        } else {
+            $success = 'Password setup workflow scaffold is ready. Account activation and login wiring will be completed in the next phase.';
+        }
     }
 }
 ?>
@@ -79,15 +85,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $error === '' && $request) {
             <p>Create your secure password to continue onboarding.</p>
         </div>
         <div class="body">
-            <?php if ($error !== ''): ?><div class="msg error"><?php echo htmlspecialchars($error); ?></div><?php endif; ?>
-            <?php if ($success !== ''): ?><div class="msg success"><?php echo htmlspecialchars($success); ?></div><?php endif; ?>
+            <?php if ($error !== ''): ?><div class="msg error"><?php echo h($error); ?></div><?php endif; ?>
+            <?php if ($success !== ''): ?><div class="msg success"><?php echo h($success); ?></div><?php endif; ?>
 
             <?php if ($request && $error === ''): ?>
                 <p class="meta">
-                    Institution: <strong><?php echo htmlspecialchars($request['institution_name']); ?></strong><br>
-                    Contact: <?php echo htmlspecialchars($request['contact_name']); ?> (<?php echo htmlspecialchars($request['email']); ?>)
+                    Institution: <strong><?php echo h($request['institution_name']); ?></strong><br>
+                    Contact: <?php echo h($request['contact_name']); ?> (<?php echo h($request['email']); ?>)
                 </p>
                 <form method="POST">
+                    <?php echo csrf_field(); ?>
                     <div class="field">
                         <label for="password">New Password</label>
                         <input id="password" type="password" name="password" required minlength="8">

@@ -1,14 +1,12 @@
 <?php
 session_start();
 require_once '../config/db.php';
-require_once '../src/User.php';
-require_once '../src/DemoRequest.php';
 
-// 1. Protection: If no session exists, redirect to login
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit();
-}
+use EduPay\Auth;
+use EduPay\User;
+use EduPay\DemoRequest;
+
+Auth::requireLogin();
 
 $userObj = new User($pdo);
 $isAdmin = $_SESSION['role'] === 'admin';
@@ -239,8 +237,8 @@ if ($isAdmin) {
         <main class="main">
             <div class="top">
                 <div>
-                    <h1 class="title">Welcome, <?php echo htmlspecialchars($_SESSION['user_name']); ?></h1>
-                    <p class="sub">Role: <?php echo strtoupper(htmlspecialchars($_SESSION['role'])); ?></p>
+                    <h1 class="title">Welcome, <?php echo h($_SESSION['user_name']); ?></h1>
+                    <p class="sub">Role: <?php echo strtoupper(h($_SESSION['role'])); ?></p>
                 </div>
                 <div class="pill">EduPay Africa Dashboard</div>
             </div>
@@ -286,8 +284,8 @@ if ($isAdmin) {
                             foreach ($children as $child):
                         ?>
                             <li>
-                                <strong><?php echo htmlspecialchars($child['full_name']); ?></strong>
-                                (<?php echo htmlspecialchars($child['email']); ?>)
+                                <strong><?php echo h($child['full_name']); ?></strong>
+                                (<?php echo h($child['email']); ?>)
                                 - <a href="view_fees.php?student_id=<?php echo $child['id']; ?>">View Fee Statement</a>
                             </li>
                         <?php

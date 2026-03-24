@@ -1,36 +1,28 @@
 <?php
 session_start();
 require_once '../config/db.php';
-require_once '../src/DemoRequest.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit();
-}
+use EduPay\Auth;
+use EduPay\DemoRequest;
 
-if ($_SESSION['role'] !== 'admin') {
-    http_response_code(403);
-    echo 'Access denied. Admins only.';
-    exit();
-}
+Auth::requireLogin();
+Auth::requireRole('admin', 403, 'Access denied. Admins only.');
 
 $demoRequestObj = new DemoRequest($pdo);
 $error = '';
 $success = '';
 $requests = [];
 
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
+// Ensure CSRF token exists for this session.
+csrf_token();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $token = $_POST['csrf_token'] ?? '';
     $requestId = isset($_POST['request_id']) ? (int) $_POST['request_id'] : 0;
     $approvalStatus = trim($_POST['approval_status'] ?? 'pending');
     $notes = trim($_POST['approval_notes'] ?? '');
     $allowedStatuses = ['pending', 'approved', 'rejected'];
 
-    if (!hash_equals($_SESSION['csrf_token'], $token)) {
+    if (!csrf_verify()) {
         $error = 'Invalid request token. Please refresh and try again.';
     } elseif ($requestId <= 0 || !in_array($approvalStatus, $allowedStatuses, true)) {
         $error = 'Invalid approval update payload.';
@@ -206,8 +198,8 @@ try {
         </div>
     </div>
 
-    <?php if ($error !== ''): ?><div class="alert error"><?php echo htmlspecialchars($error); ?></div><?php endif; ?>
-    <?php if ($success !== ''): ?><div class="alert success"><?php echo htmlspecialchars($success); ?></div><?php endif; ?>
+    <?php if ($error !== ''): ?><div class="alert error"><?php echo h($error); ?></div><?php endif; ?>
+    <?php if ($success !== ''): ?><div class="alert success"><?php echo h($success); ?></div><?php endif; ?>
 
     <div class="card">
         <?php if (empty($requests)): ?>
@@ -232,19 +224,19 @@ try {
                         <tr>
                             <td><?php echo (int) $request['id']; ?></td>
                             <td>
-                                <strong><?php echo htmlspecialchars($request['institution_name']); ?></strong><br>
-                                <span style="color:#64748b"><?php echo htmlspecialchars($request['email']); ?></span><br>
-                                <span style="color:#64748b"><?php echo htmlspecialchars($request['phone']); ?></span>
+                                <strong><?php echo h($request['institution_name']); ?></strong><br>
+                                <span style="color:#64748b"><?php echo h($request['email']); ?></span><br>
+                                <span style="color:#64748b"><?php echo h($request['phone']); ?></span>
                             </td>
-                            <td><?php echo htmlspecialchars($request['contact_name']); ?></td>
-                            <td><?php echo htmlspecialchars($request['school_type']); ?></td>
-                            <td><?php echo htmlspecialchars($request['status']); ?></td>
+                            <td><?php echo h($request['contact_name']); ?></td>
+                            <td><?php echo h($request['school_type']); ?></td>
+                            <td><?php echo h($request['status']); ?></td>
                             <td>
-                                <span class="badge <?php echo htmlspecialchars($request['approval_status']); ?>">
-                                    <?php echo htmlspecialchars($request['approval_status']); ?>
+                                <span class="badge <?php echo h($request['approval_status']); ?>">
+                                    <?php echo h($request['approval_status']); ?>
                                 </span><br>
                                 <small style="color:#6b7280; display:inline-block; margin-top:6px;">
-                                    <?php echo $request['approved_at'] ? htmlspecialchars($request['approved_at']) : 'Not approved yet'; ?>
+                                    <?php echo $request['approved_at'] ? h($request['approved_at']) : 'Not approved yet'; ?>
                                 </small>
                             </td>
                             <td>
@@ -258,14 +250,14 @@ try {
                             <td>
                                 <?php if (!empty($request['onboarding_token']) && !empty($request['onboarding_expires_at'])): ?>
                                     <a class="link" href="onboarding_set_password.php?token=<?php echo urlencode($request['onboarding_token']); ?>" target="_blank">Get Started Link</a><br>
-                                    <small style="color:#6b7280;">Expires: <?php echo htmlspecialchars($request['onboarding_expires_at']); ?></small>
+                                    <small style="color:#6b7280;">Expires: <?php echo h($request['onboarding_expires_at']); ?></small>
                                 <?php else: ?>
                                     <small style="color:#6b7280;">Token not generated</small>
                                 <?php endif; ?>
                             </td>
                             <td>
                                 <form method="POST" class="approve-form">
-                                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
+                                    <?php echo csrf_field(); ?>
                                     <input type="hidden" name="request_id" value="<?php echo (int) $request['id']; ?>">
                                     <select name="approval_status">
                                         <?php foreach (['pending', 'approved', 'rejected'] as $opt): ?>
@@ -274,7 +266,7 @@ try {
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
-                                    <textarea name="approval_notes" placeholder="Optional notes..."><?php echo htmlspecialchars((string) $request['approval_notes']); ?></textarea>
+                                    <textarea name="approval_notes" placeholder="Optional notes..."><?php echo h((string) $request['approval_notes']); ?></textarea>
                                     <button type="submit">Save Approval</button>
                                 </form>
                             </td>

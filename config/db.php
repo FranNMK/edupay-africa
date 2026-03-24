@@ -1,10 +1,22 @@
 <?php
-// Database configuration details
-$host = 'localhost';
-$db   = 'edupay_africa';
-$user = 'root';
-$pass = ''; // Default XAMPP password is blank
-$charset = 'utf8mb4';
+// Load environment variables from .env when the file exists (local/dev).
+// In production, set the variables directly in the server environment instead.
+$vendorAutoload = __DIR__ . '/../vendor/autoload.php';
+if (file_exists($vendorAutoload)) {
+    require_once $vendorAutoload;
+}
+
+$dotenvPath = __DIR__ . '/..';
+if (class_exists(\Dotenv\Dotenv::class) && file_exists($dotenvPath . '/.env')) {
+    \Dotenv\Dotenv::createImmutable($dotenvPath)->safeLoad();
+}
+
+// Database configuration — values come from environment variables with safe fallbacks.
+$host    = $_ENV['DB_HOST']    ?? getenv('DB_HOST')    ?: 'localhost';
+$db      = $_ENV['DB_NAME']    ?? getenv('DB_NAME')    ?: 'edupay_africa';
+$user    = $_ENV['DB_USER']    ?? getenv('DB_USER')    ?: 'root';
+$pass    = $_ENV['DB_PASS']    ?? getenv('DB_PASS')    ?: '';
+$charset = $_ENV['DB_CHARSET'] ?? getenv('DB_CHARSET') ?: 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
 $options = [

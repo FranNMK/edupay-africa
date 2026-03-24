@@ -1,35 +1,27 @@
 <?php
 session_start();
 require_once '../config/db.php';
-require_once '../src/DemoRequest.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit();
-}
+use EduPay\Auth;
+use EduPay\DemoRequest;
 
-if ($_SESSION['role'] !== 'admin') {
-    http_response_code(403);
-    echo 'Access denied. Admins only.';
-    exit();
-}
+Auth::requireLogin();
+Auth::requireRole('admin', 403, 'Access denied. Admins only.');
 
 $demoRequestObj = new DemoRequest($pdo);
 $error = '';
 $success = '';
 $requests = [];
 
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
+// Ensure CSRF token exists for this session.
+csrf_token();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $allowedStatuses = ['new', 'contacted', 'qualified', 'closed'];
     $requestId = isset($_POST['request_id']) ? (int) $_POST['request_id'] : 0;
     $newStatus = trim($_POST['status'] ?? '');
-    $token = $_POST['csrf_token'] ?? '';
 
-    if (!hash_equals($_SESSION['csrf_token'], $token)) {
+    if (!csrf_verify()) {
         $error = 'Invalid request token. Please refresh and try again.';
     } elseif ($requestId <= 0 || !in_array($newStatus, $allowedStatuses, true)) {
         $error = 'Invalid status update payload.';
@@ -329,11 +321,11 @@ try {
         </div>
 
     <?php if ($error !== ''): ?>
-        <p class="error"><?php echo htmlspecialchars($error); ?></p>
+        <p class="error"><?php echo h($error); ?></p>
     <?php endif; ?>
 
     <?php if ($success !== ''): ?>
-        <p class="success"><?php echo htmlspecialchars($success); ?></p>
+        <p class="success"><?php echo h($success); ?></p>
     <?php endif; ?>
 
     <?php if ($error === '' || !empty($requests)): ?>
@@ -362,20 +354,20 @@ try {
                             <?php foreach ($requests as $request): ?>
                                 <tr>
                                     <td><?php echo (int) $request['id']; ?></td>
-                                    <td><?php echo htmlspecialchars($request['institution_name']); ?></td>
-                                    <td><?php echo htmlspecialchars($request['contact_name']); ?></td>
-                                    <td><?php echo htmlspecialchars($request['email']); ?></td>
-                                    <td><?php echo htmlspecialchars($request['phone']); ?></td>
-                                    <td><?php echo htmlspecialchars($request['school_type']); ?></td>
+                                    <td><?php echo h($request['institution_name']); ?></td>
+                                    <td><?php echo h($request['contact_name']); ?></td>
+                                    <td><?php echo h($request['email']); ?></td>
+                                    <td><?php echo h($request['phone']); ?></td>
+                                    <td><?php echo h($request['school_type']); ?></td>
                                     <td><?php echo $request['student_count'] !== null ? (int) $request['student_count'] : '-'; ?></td>
-                                    <td><?php echo htmlspecialchars($request['preferred_contact']); ?></td>
-                                    <td><?php echo nl2br(htmlspecialchars((string) $request['message'])); ?></td>
+                                    <td><?php echo h($request['preferred_contact']); ?></td>
+                                    <td><?php echo nl2br(h((string) $request['message'])); ?></td>
                                     <td>
-                                        <span class="status <?php echo htmlspecialchars($request['status']); ?>">
-                                            <?php echo htmlspecialchars($request['status']); ?>
+                                        <span class="status <?php echo h($request['status']); ?>">
+                                            <?php echo h($request['status']); ?>
                                         </span>
                                         <form method="POST" class="status-form">
-                                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
+                                            <?php echo csrf_field(); ?>
                                             <input type="hidden" name="request_id" value="<?php echo (int) $request['id']; ?>">
                                             <select name="status" aria-label="Update status for request <?php echo (int) $request['id']; ?>">
                                                 <?php foreach (['new', 'contacted', 'qualified', 'closed'] as $statusOption): ?>
@@ -387,7 +379,7 @@ try {
                                             <button type="submit">Save</button>
                                         </form>
                                     </td>
-                                    <td><?php echo htmlspecialchars($request['created_at']); ?></td>
+                                    <td><?php echo h($request['created_at']); ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>

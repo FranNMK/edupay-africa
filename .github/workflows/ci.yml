@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  test:
+    name: PHP Lint & Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: pdo, pdo_sqlite, pdo_mysql
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: PHP syntax lint
+        run: find src public config tests -name "*.php" -print0 | xargs -0 -P4 php -l
+
+      - name: PHP CodeSniffer (PSR-12)
+        run: ./vendor/bin/phpcs --standard=PSR12 --extensions=php src/ --ignore=src/helpers.php
+
+      - name: PHPUnit
+        run: ./vendor/bin/phpunit --no-coverage
