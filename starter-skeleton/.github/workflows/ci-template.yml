@@ -1,0 +1,13 @@
+name: CI Template
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Placeholder
+        run: echo "Configure lint/test/build once stack is finalized"
